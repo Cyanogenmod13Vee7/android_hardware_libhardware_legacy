@@ -127,6 +127,26 @@ static const char EXT_MODULE_ARG[] = "";
 static const char EXT_MODULE_PATH[] = WIFI_EXT_MODULE_PATH;
 #endif
 
+/*
+ * @neutrondev => this is how LG loads WI-FI on stock Firmware for LII series
+*/
+
+#ifdef WIFI_CFG80211_MODULE_NAME
+static const char CFG80211_MODULE_NAME[] = WIFI_CFG80211_MODULE_NAME;
+#ifdef WIFI_CFG80211_MODULE_ARG
+static const char CFG80211_MODULE_ARG[] = WIFI_CFG80211_MODULE_ARG;
+#else
+static const char CFG80211_MODULE_ARG[] = "";
+#endif
+#endif
+#ifdef WIFI_CFG80211_MODULE_PATH
+static const char CFG80211_MODULE_PATH[] = WIFI_CFG80211_MODULE_PATH;
+#endif
+
+/*
+ * @neutrondev => this is how LG loads WI-FI on stock Firmware for LII series
+*/
+
 #ifndef WIFI_DRIVER_FW_PATH_PARAM
 #define WIFI_DRIVER_FW_PATH_PARAM	"/sys/module/wlan/parameters/fwpath"
 #endif
@@ -338,6 +358,12 @@ int wifi_load_driver()
 
     property_set(DRIVER_PROP_NAME, "loading");
 
+#ifdef WIFI_CFG80211_MODULE_PATH
+    if (insmod(CFG80211_MODULE_PATH, CFG80211_MODULE_ARG) < 0)
+        return -1;
+    usleep(200000);
+#endif
+
 #ifdef WIFI_EXT_MODULE_PATH
     if (insmod(EXT_MODULE_PATH, EXT_MODULE_ARG) < 0)
         return -1;
@@ -350,6 +376,11 @@ int wifi_load_driver()
 #ifdef WIFI_EXT_MODULE_NAME
         rmmod(EXT_MODULE_NAME);
 #endif
+
+#ifdef WIFI_CFG80211_MODULE_NAME
+        rmmod(CFG80211_MODULE_NAME);
+#endif
+
         return -1;
     }
 
@@ -408,6 +439,11 @@ int wifi_unload_driver()
 #ifdef WIFI_EXT_MODULE_NAME
             if (rmmod(EXT_MODULE_NAME) == 0)
 #endif
+
+#ifdef WIFI_CFG80211_MODULE_NAME
+			if (rmmod(CFG80211_MODULE_NAME) == 0)
+#endif
+
             return 0;
         }
         return -1;
